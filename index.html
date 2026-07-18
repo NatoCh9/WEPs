@@ -20,17 +20,50 @@
 
 <style>
   :root{
-    --navy:#1b2440;
-    --navy-dark:#121a30;
-    --coral:#ff6f4d;
-    --coral-dark:#e5573a;
-    --teal:#0ea5a0;
-    --bg:#faf9f7;
-    --bg-alt:#f1efe9;
-    --text:#1a1a1a;
-    --text-muted:#5a5f6d;
-    --border:#e4e1da;
+    /* ---- Design tokens: primitives ---- */
+    --navy-900:#0d1326;
+    --navy-800:#121a30;
+    --navy-700:#1b2440;
+    --coral-500:#ff6f4d;
+    --coral-600:#e5573a;
+    --teal-500:#0ea5a0;
+    --cream-50:#faf9f7;
+    --cream-100:#f1efe9;
+    --ink-900:#1a1a1a;
+    --ink-600:#5a5f6d;
+    --line-200:#e4e1da;
+
+    /* ---- Semantic aliases (used throughout) ---- */
+    --navy:var(--navy-700);
+    --navy-dark:var(--navy-800);
+    --coral:var(--coral-500);
+    --coral-dark:var(--coral-600);
+    --teal:var(--teal-500);
+    --bg:var(--cream-50);
+    --bg-alt:var(--cream-100);
+    --text:var(--ink-900);
+    --text-muted:var(--ink-600);
+    --border:var(--line-200);
+
+    /* ---- Spacing scale ---- */
+    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+    --space-5:24px; --space-6:32px; --space-7:48px; --space-8:64px; --space-9:96px;
+
+    /* ---- Radius scale ---- */
     --radius:14px;
+    --radius-sm:8px; --radius-md:14px; --radius-lg:20px; --radius-xl:28px; --radius-full:999px;
+
+    /* ---- Type scale (fluid) ---- */
+    --text-2xl:clamp(1.6rem,1.3rem + 1vw,2.2rem);
+    --text-3xl:clamp(2rem,1.5rem + 2vw,2.8rem);
+    --text-4xl:clamp(2.3rem,1.7rem + 3vw,3.5rem);
+
+    /* ---- Shadow scale ---- */
+    --shadow-sm:0 2px 10px rgba(27,36,64,.06);
+    --shadow-md:0 16px 36px rgba(27,36,64,.12);
+    --shadow-lg:0 30px 70px rgba(13,19,38,.28);
+
+    --ease:cubic-bezier(.4,0,.2,1);
     --max:1160px;
   }
   *{box-sizing:border-box;}
@@ -51,7 +84,12 @@
   a{color:inherit;}
   img{max-width:100%;display:block;}
   .container{max-width:var(--max);margin:0 auto;padding:0 24px;}
-  section{padding:72px 0;}
+  section{padding:var(--space-9) 0;}
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+    outline:3px solid var(--coral);
+    outline-offset:3px;
+    border-radius:4px;
+  }
   .eyebrow{
     text-transform:uppercase;
     letter-spacing:.08em;
@@ -65,17 +103,17 @@
     align-items:center;
     gap:8px;
     padding:14px 26px;
-    border-radius:999px;
+    border-radius:var(--radius-full);
     font-weight:700;
     font-size:.95rem;
     text-decoration:none;
     cursor:pointer;
     border:2px solid transparent;
-    transition:transform .15s ease, box-shadow .15s ease;
+    transition:transform .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease);
   }
   .btn:hover{transform:translateY(-2px);}
   .btn-primary{background:var(--coral);color:#fff;box-shadow:0 6px 20px rgba(255,111,77,.35);}
-  .btn-primary:hover{background:var(--coral-dark);}
+  .btn-primary:hover{background:var(--coral-dark);box-shadow:0 10px 26px rgba(255,111,77,.42);}
   .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.55);}
   .btn-ghost:hover{background:rgba(255,255,255,.12);}
   .btn-outline{background:transparent;color:var(--navy);border-color:var(--navy);}
@@ -107,25 +145,44 @@
 
   /* ---------- Hero ---------- */
   .hero{
-    background:linear-gradient(160deg,var(--navy) 0%,var(--navy-dark) 100%);
+    position:relative;
+    background:var(--navy-dark);
     color:#fff;
-    padding:96px 0 80px;
+    padding:calc(var(--space-9) + 24px) 0 var(--space-9);
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero-photo{
+    position:absolute; inset:0;
+    background-image:url('https://images.unsplash.com/photo-1573164574511-73c773193279?auto=format&fit=crop&w=1800&q=80');
+    background-size:cover;
+    background-position:center 35%;
+    opacity:.32;
+    z-index:-2;
+  }
+  .hero-scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(115deg, var(--navy-dark) 20%, rgba(18,26,48,.78) 48%, rgba(18,26,48,.4) 100%);
+    z-index:-1;
   }
   .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;}
   @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
-  .hero h1{font-size:clamp(2.1rem,4.2vw,3.3rem);}
+  .hero h1{font-size:var(--text-4xl);}
   .hero h1 em{color:var(--coral);font-style:normal;}
   .hero-sub{font-size:1.1rem;color:rgba(255,255,255,.82);max-width:52ch;}
   .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;}
   .stat-card{
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.15);
-    border-radius:var(--radius);
-    padding:26px 28px;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:var(--radius-lg);
+    padding:var(--space-6);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    box-shadow:var(--shadow-lg);
   }
   .stat-card .big{font-family:'Manrope',sans-serif;font-weight:800;font-size:2.6rem;color:var(--coral);}
-  .stat-card .label{color:rgba(255,255,255,.8);font-size:.95rem;}
-  .stat-note{font-size:.75rem;color:rgba(255,255,255,.5);margin-top:10px;}
+  .stat-card .label{color:rgba(255,255,255,.85);font-size:.95rem;}
+  .stat-note{font-size:.75rem;color:rgba(255,255,255,.55);margin-top:10px;}
 
   /* ---------- Trust bar / logo wall ---------- */
   .trust{background:var(--bg-alt);padding:40px 0;border-bottom:1px solid var(--border);}
@@ -141,15 +198,42 @@
 
   /* ---------- Business case ---------- */
   .section-head{max-width:640px;margin-bottom:44px;}
-  .section-head h2{font-size:clamp(1.6rem,3vw,2.2rem);}
+  .section-head h2{font-size:var(--text-2xl);}
   .section-head p{color:var(--text-muted);font-size:1.05rem;}
   .cards-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
   @media (max-width:900px){ .cards-4{grid-template-columns:repeat(2,1fr);} }
   @media (max-width:560px){ .cards-4{grid-template-columns:1fr;} }
-  .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:26px 22px;}
+  .card{
+    background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);padding:26px 22px;
+    transition:transform .25s var(--ease), box-shadow .25s var(--ease);
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);}
   .card .num{font-family:'Manrope',sans-serif;font-weight:800;font-size:1.4rem;color:var(--coral);margin-bottom:10px;}
   .card h3{font-size:1.05rem;}
   .card p{color:var(--text-muted);font-size:.92rem;margin:0;}
+
+  /* ---------- Impact band ---------- */
+  .impact-band{
+    position:relative;
+    background-image:url('https://images.unsplash.com/photo-1758691737138-7b9b1884b1db?auto=format&fit=crop&w=1800&q=80');
+    background-size:cover;
+    background-position:center;
+    padding:var(--space-8) 0;
+    color:#fff;
+    isolation:isolate;
+  }
+  .impact-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(120deg, rgba(13,19,38,.92) 25%, rgba(13,19,38,.5) 100%);
+    z-index:-1;
+  }
+  .impact-inner{text-align:center;max-width:640px;margin:0 auto;}
+  .impact-stat{
+    font-family:'Manrope',sans-serif;font-weight:800;
+    font-size:clamp(3rem,6vw,4.5rem);color:var(--coral);line-height:1;margin-bottom:var(--space-3);
+  }
+  .impact-text{font-size:1.15rem;color:rgba(255,255,255,.94);margin-bottom:var(--space-2);}
+  .impact-source{font-size:.8rem;color:rgba(255,255,255,.55);margin:0;}
 
   /* ---------- Principles ---------- */
   .principles{background:var(--navy);color:#fff;}
@@ -167,8 +251,8 @@
   /* ---------- Quiz ---------- */
   .quiz-section{background:var(--bg-alt);}
   .quiz-box{
-    background:#fff;border:1px solid var(--border);border-radius:20px;
-    max-width:680px;margin:0 auto;padding:36px 32px;box-shadow:0 20px 50px rgba(27,36,64,.08);
+    background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);
+    max-width:680px;margin:0 auto;padding:36px 32px;box-shadow:var(--shadow-lg);
   }
   .quiz-progress{height:6px;background:var(--bg-alt);border-radius:99px;overflow:hidden;margin-bottom:24px;}
   .quiz-progress-bar{height:100%;background:var(--coral);width:0%;transition:width .3s ease;}
@@ -199,7 +283,11 @@
   /* ---------- Proof ---------- */
   .proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   @media (max-width:860px){ .proof-grid{grid-template-columns:1fr;} }
-  .proof-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+  .proof-card{
+    background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;
+    transition:transform .25s var(--ease), box-shadow .25s var(--ease);
+  }
+  .proof-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);}
   .proof-card .tag{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);font-weight:700;margin-bottom:8px;}
   .proof-card h3{font-size:1.05rem;margin-bottom:6px;}
   .proof-card p{color:var(--text-muted);font-size:.9rem;margin:0;}
@@ -218,20 +306,32 @@
   .resource-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   @media (max-width:860px){ .resource-grid{grid-template-columns:1fr;} }
   .resource-card{
-    display:block;background:#fff;border:1px solid var(--border);border-radius:var(--radius);
-    padding:24px;text-decoration:none;color:inherit;transition:.15s;
+    display:block;background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);
+    padding:24px;text-decoration:none;color:inherit;
+    transition:transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s var(--ease);
   }
-  .resource-card:hover{border-color:var(--coral);transform:translateY(-2px);}
+  .resource-card:hover{border-color:var(--coral);transform:translateY(-4px);box-shadow:var(--shadow-md);}
   .resource-card h3{font-size:1rem;margin-bottom:6px;}
   .resource-card p{color:var(--text-muted);font-size:.88rem;margin:0;}
   .resource-card .arrow{color:var(--coral-dark);font-weight:700;font-size:.85rem;margin-top:10px;display:block;}
 
   /* ---------- Final CTA ---------- */
   .final-cta{
+    position:relative;
     background:linear-gradient(135deg,var(--coral) 0%,var(--coral-dark) 100%);
     color:#fff;text-align:center;
+    overflow:hidden;
+    isolation:isolate;
   }
-  .final-cta h2{font-size:clamp(1.7rem,3.4vw,2.4rem);color:#fff;}
+  .final-cta-photo{
+    position:absolute; inset:0;
+    background-image:url('https://images.unsplash.com/photo-1637589267610-6c66fc2a086b?auto=format&fit=crop&w=1800&q=80');
+    background-size:cover; background-position:center 20%;
+    opacity:.22;
+    mix-blend-mode:overlay;
+    z-index:-1;
+  }
+  .final-cta h2{font-size:var(--text-3xl);color:#fff;}
   .final-cta p{color:rgba(255,255,255,.9);max-width:520px;margin:0 auto 28px;}
   .final-cta .btn-primary{background:#fff;color:var(--coral-dark);box-shadow:none;}
   .final-cta .btn-primary:hover{background:#fff2ee;}
@@ -264,6 +364,8 @@
 
   <!-- ================= HERO ================= -->
   <section class="hero">
+    <div class="hero-photo" role="img" aria-label="Diverse group of professionals in a workplace meeting"></div>
+    <div class="hero-scrim"></div>
     <div class="container hero-grid">
       <div>
         <p class="eyebrow">The UN Women's Empowerment Principles</p>
@@ -330,6 +432,16 @@
           <p>Gender-equality reporting is fast becoming a standard line item in ESG and investor due diligence.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ================= IMPACT BAND ================= -->
+  <section class="impact-band">
+    <div class="impact-overlay"></div>
+    <div class="container impact-inner">
+      <div class="impact-stat">39%</div>
+      <p class="impact-text">Companies in the top quartile for executive-team gender diversity are 39% more likely to financially outperform their least-diverse peers.</p>
+      <p class="impact-source">McKinsey &amp; Company, "Diversity Matters Even More," 2023</p>
     </div>
   </section>
 
@@ -540,6 +652,7 @@
 
   <!-- ================= FINAL CTA ================= -->
   <section class="final-cta">
+    <div class="final-cta-photo" role="img" aria-label="Confident businesswoman"></div>
     <div class="container">
       <h2>Your CEO probably hasn't heard of WEPs either.</h2>
       <p>That's the whole opportunity. Send them the 7 Principles, the quiz, or just the link — it takes them five minutes to understand, and one signature to join 12,000+ companies already committed.</p>
@@ -558,7 +671,8 @@
       happen on <a href="https://www.weps.org" target="_blank" rel="noopener">weps.org</a>.
     </p>
     <p>
-      <a href="https://www.weps.org" target="_blank" rel="noopener">Official WEPs site →</a>
+      <a href="https://www.weps.org" target="_blank" rel="noopener">Official WEPs site →</a><br>
+      <span style="font-size:.75rem;opacity:.6;">Photography via Unsplash.</span>
     </p>
   </div>
 </footer>

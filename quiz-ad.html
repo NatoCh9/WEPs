@@ -33,12 +33,24 @@
     margin:0;
     min-height:100vh;
     font-family:'Inter',system-ui,sans-serif;
-    background:linear-gradient(160deg,var(--navy) 0%,var(--navy-dark) 100%);
+    background:var(--navy-dark);
     color:#fff;
     display:flex;
     align-items:center;
     justify-content:center;
     padding:24px;
+  }
+  .ad-bg-photo{
+    position:fixed; inset:0;
+    background-image:url('https://images.unsplash.com/photo-1590650213165-c1fef80648c4?auto=format&fit=crop&w=1200&q=80');
+    background-size:cover; background-position:center;
+    z-index:-2;
+  }
+  .ad-bg-scrim{
+    position:fixed; inset:0;
+    background:linear-gradient(160deg,var(--navy) 0%,var(--navy-dark) 100%);
+    opacity:.82;
+    z-index:-1;
   }
   h1,h2{font-family:'Manrope',sans-serif;line-height:1.2;margin:0 0 .4em;}
   .wrap{width:100%;max-width:420px;}
@@ -58,9 +70,11 @@
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
     padding:14px 22px;border-radius:999px;font-weight:700;font-size:.95rem;
     text-decoration:none;cursor:pointer;border:none;width:100%;
+    transition:transform .2s ease, box-shadow .2s ease, background-color .2s ease;
   }
-  .btn-primary{background:var(--coral);color:#fff;}
-  .btn-primary:hover{background:var(--coral-dark);}
+  .btn:hover{transform:translateY(-2px);}
+  .btn-primary{background:var(--coral);color:#fff;box-shadow:0 6px 20px rgba(255,111,77,.35);}
+  .btn-primary:hover{background:var(--coral-dark);box-shadow:0 10px 26px rgba(255,111,77,.42);}
   .btn-outline{background:transparent;border:2px solid var(--navy);color:var(--navy);margin-top:10px;}
   .quiz-meta{display:flex;justify-content:space-between;font-size:.75rem;color:#5a5f6d;font-weight:600;margin-bottom:8px;}
   .quiz-progress{height:6px;background:var(--bg-alt);border-radius:99px;overflow:hidden;margin-bottom:20px;}
@@ -86,9 +100,13 @@
     display:block;text-align:center;margin-top:18px;font-size:.8rem;color:rgba(255,255,255,.7);
   }
   .foot-link a{color:#fff;font-weight:700;}
+  a:focus-visible, button:focus-visible{ outline:3px solid var(--coral); outline-offset:3px; border-radius:4px; }
 </style>
 </head>
 <body>
+
+<div class="ad-bg-photo" role="img" aria-label="Confident businesswoman"></div>
+<div class="ad-bg-scrim"></div>
 
 <div class="wrap">
   <div class="badge">60-second quiz</div>
