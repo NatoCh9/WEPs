@@ -315,6 +315,18 @@
   .resource-card p{color:var(--text-muted);font-size:.88rem;margin:0;}
   .resource-card .arrow{color:var(--coral-dark);font-weight:700;font-size:.85rem;margin-top:10px;display:block;}
 
+  /* ---------- Newsletter ---------- */
+  .newsletter{background:var(--navy);color:#fff;}
+  .newsletter-inner{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:560px;margin:0 auto;}
+  .newsletter form{display:flex;gap:10px;width:100%;margin-top:20px;flex-wrap:wrap;justify-content:center;}
+  .newsletter input[type=email]{
+    flex:1;min-width:220px;padding:14px 18px;border-radius:var(--radius-full);border:none;font-size:.95rem;font-family:inherit;
+  }
+  .newsletter-note{font-size:.75rem;color:rgba(255,255,255,.55);margin-top:14px;}
+  .newsletter-msg{margin-top:14px;font-size:.9rem;color:var(--coral);display:none;}
+  .newsletter-msg.show{display:block;}
+  .newsletter-msg.error{color:#ffb3a3;}
+
   /* ---------- Final CTA ---------- */
   .final-cta{
     position:relative;
@@ -650,6 +662,20 @@
     </div>
   </section>
 
+  <!-- ================= NEWSLETTER ================= -->
+  <section class="newsletter">
+    <div class="container newsletter-inner">
+      <p class="eyebrow" style="text-align:center;">Not ready to pitch your CEO yet?</p>
+      <h2>Get one email when it matters</h2>
+      <p style="color:rgba(255,255,255,.75);">New signatory milestones, new WEPs tools, and new quizzes. No spam, unsubscribe anytime.</p>
+      <form id="newsletter-form">
+        <input type="email" id="newsletter-email" placeholder="you@company.com" required>
+        <button type="submit" class="btn btn-primary" id="newsletter-submit">Get updates</button>
+      </form>
+      <p class="newsletter-msg" id="newsletter-msg"></p>
+    </div>
+  </section>
+
   <!-- ================= FINAL CTA ================= -->
   <section class="final-cta">
     <div class="final-cta-photo" role="img" aria-label="Confident businesswoman"></div>
@@ -679,6 +705,9 @@
 
 <script>
 (function(){
+  // Replace with the real Worker URL after running `wrangler deploy` in /worker.
+  var NEWSLETTER_ENDPOINT = 'https://weps-newsletter.YOUR-SUBDOMAIN.workers.dev';
+
   var questions = [
     {
       q: "Who created the Women's Empowerment Principles?",
@@ -859,6 +888,43 @@
       }
     };
   }
+
+  document.getElementById('newsletter-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var emailInput = document.getElementById('newsletter-email');
+    var msg = document.getElementById('newsletter-msg');
+    var btn = document.getElementById('newsletter-submit');
+    var email = emailInput.value.trim();
+
+    btn.disabled = true;
+    msg.className = 'newsletter-msg show';
+    msg.textContent = 'Submitting…';
+
+    fetch(NEWSLETTER_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+      .then(function(res){
+        return res.json().then(function(data){ return { ok: res.ok, data: data }; });
+      })
+      .then(function(result){
+        if (result.ok) {
+          msg.className = 'newsletter-msg show';
+          msg.textContent = "You're on the list — thanks!";
+          emailInput.value = '';
+          if (window.gtag) { gtag('event', 'newsletter_signup', { location: 'newsletter_section' }); }
+        } else {
+          msg.className = 'newsletter-msg show error';
+          msg.textContent = (result.data && result.data.error) || 'Something went wrong — try again.';
+        }
+      })
+      .catch(function(){
+        msg.className = 'newsletter-msg show error';
+        msg.textContent = "Couldn't reach the server — try again in a moment.";
+      })
+      .finally(function(){ btn.disabled = false; });
+  });
 })();
 </script>
 

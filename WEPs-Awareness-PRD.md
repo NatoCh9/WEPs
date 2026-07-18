@@ -5,7 +5,7 @@
 |---|---|
 | **Status** | Draft — core decisions confirmed (see §0), remaining items in §12 |
 | **Author** | Compiled by Claude from project files, 2026-07-18 |
-| **Related files** | [`WEPs-Awareness-Site-Plan.md`](WEPs-Awareness-Site-Plan.md) (design plan), [`compass_artifact_wf-7d6c0e69...md`](compass_artifact_wf-7d6c0e69-6ce1-58eb-a702-30734223765e_text_markdown.md) (8-site competitive teardown), [`index.html`](index.html) (built v1), [`quiz-ad.html`](quiz-ad.html) (built v1) |
+| **Related files** | [`WEPs-Awareness-Site-Plan.md`](WEPs-Awareness-Site-Plan.md) (design plan), [`compass_artifact_wf-7d6c0e69...md`](compass_artifact_wf-7d6c0e69-6ce1-58eb-a702-30734223765e_text_markdown.md) (8-site competitive teardown), [`index.html`](index.html) (site), [`quiz-ad.html`](quiz-ad.html) (ad quiz), [`worker/`](worker/) (newsletter backend, see `worker/README.md`) |
 
 ---
 
@@ -74,17 +74,25 @@ quiz funnel (`quiz_start`, `quiz_answer`, `quiz_complete` with score/tier) and e
 
 ### In scope (built in v1)
 - Single-page awareness site (`index.html`): hero, trust bar + signatory wall, business-case cards,
-  7 Principles, interactive quiz, signatory proof section, FAQ, resource links, final CTA, footer with
-  UN Women Ambassadors attribution/disclaimer
+  7 Principles, interactive quiz, mid-page "impact" photo band (real McKinsey stat), signatory proof
+  section, FAQ, resource links, newsletter capture, final CTA, footer with UN Women Ambassadors
+  attribution/disclaimer
 - Standalone short-form quiz (`quiz-ad.html`) built for paid social ad placements
 - All primary CTAs link out to official `weps.org` pages (join flow, CEO Statement of Support)
+- Real photography (verified free-tier Unsplash) on hero, impact band, final CTA, and quiz-ad backdrop
+- Design token layer (spacing/radius/shadow/type scale) in `index.html`'s CSS
+- **Newsletter backend** (`worker/`): a Cloudflare Worker (`worker/src/index.js`) that receives the
+  signup POST from `index.html` and inserts into a `newsletter_subscribers` table in Neon Postgres. The
+  database credential lives only as an encrypted Cloudflare secret — never in a file, never in the repo.
+  See `worker/README.md` for the deploy steps.
 
 ### Explicitly out of scope (v1)
 - Collecting or processing actual WEPs signatures — this always happens on weps.org
 - User accounts / login
 - Multi-language support (English only, matching "global/no specific focus" decision)
 - CMS or non-technical content editing — content is hardcoded in HTML
-- Newsletter/email capture of any kind — considered and deliberately dropped (see §12)
+- Rate limiting / bot protection on the newsletter endpoint (basic email-format validation only —
+  see `worker/README.md`'s "Known limitation")
 - Paid ad campaign setup/management (the *asset* is built; running ads is a separate workstream)
 
 ## 6. Functional Requirements
@@ -103,6 +111,8 @@ quiz funnel (`quiz_start`, `quiz_answer`, `quiz_complete` with score/tier) and e
 | F10 | Final CTA | Repeats core ask, links to CEO Statement | ✅ Built |
 | F11 | Footer | UN Women Ambassadors attribution + non-official-signing-platform disclaimer | ✅ Built |
 | F12 | Analytics | Track quiz funnel (start/answer/complete) and all outbound CTA clicks via GA4 | ✅ Built, ⚠️ needs a real Measurement ID (see §12) |
+| F13 | Newsletter | Email capture, backed by a real Cloudflare Worker + Neon Postgres | ✅ Built, ⚠️ needs `wrangler login` + secret + deploy before the placeholder endpoint URL in `index.html` works (see §12) |
+| F14 | Impact band | Mid-page photo section with a real, sourced diversity-performance stat | ✅ Built |
 
 ## 7. Non-Functional Requirements
 
@@ -144,15 +154,14 @@ Established and followed during v1 build, should stay binding for any future con
 
 ## 9. Technical Architecture (current state)
 
-- **Stack:** Static HTML + inline CSS + vanilla JS. No framework, no build tooling, no package.json.
-- **Hosting:** Confirmed as **GitHub Pages**. Not yet deployed — this folder is not currently a git
-  repository, so the remaining steps are: init a git repo, create a GitHub repo (public — GitHub Pages
-  on the free tier requires the repo be public, or a paid plan for private-repo Pages), push, then enable
-  Pages in repo settings. Not done yet — will do once the org/repo ownership question in §12 is resolved,
-  since pushing to a public GitHub repo is a visible, external action worth confirming placement for.
-- **Backend:** None. This is a purely static site. The two features that conceptually need a backend
-  (newsletter capture, any first-party analytics/conversion tracking) are currently either non-functional
-  (newsletter) or absent (analytics).
+- **Stack:** Static HTML + inline CSS + vanilla JS for the site itself. No framework, no build tooling.
+- **Hosting:** **GitHub Pages**, live at github.com/NatoCh9/WEPs → natoch9.github.io/WEPs.
+- **Backend:** One small piece — a Cloudflare Worker (`worker/`) exists solely to handle newsletter
+  signups, since GitHub Pages can't run server code and the site must never hold the database credential
+  client-side. It's the *only* backend component; everything else on the page stays static. The Worker
+  uses `@neondatabase/serverless` to talk to a Neon Postgres database over HTTP (Workers can't open raw
+  TCP sockets, which rules out the standard `pg` driver). Analytics (GA4) is a third-party script, not a
+  backend we run.
 - **Conversion tracking limitation:** Because the actual WEPs sign-up happens entirely on weps.org, this
   project has no way to know if a click-through ever resulted in a real signature, unless weps.org
   supports UTM-parameter attribution or a referral code — worth investigating but not confirmed.
@@ -166,8 +175,9 @@ Derived from the 8-site competitive teardown (see plan §5–7 for full detail):
 - Bold typography for stats and headers (Manrope for display, Inter for body, in current build)
 - CTA verb discipline: soft discovery verbs for cold-traffic sections, hard commitment verbs reserved
   for warmed-up moments (full table in plan §5)
-- No stock photography currently used — text/typography-led design; open question whether real
-  photography should be added (see §12)
+- Real, verified free-tier Unsplash photography (hero, mid-page impact band, final CTA) layered under
+  navy gradient scrims to stay on-brand rather than reading as generic stock-photo dumps; a token-based
+  design system (spacing/radius/shadow/type scale) now backs the CSS
 
 ## 11. Testing & Verification Status
 
@@ -182,15 +192,14 @@ Derived from the 8-site competitive teardown (see plan §5–7 for full detail):
 
 ## 12. Open Questions — Need Your Input
 
-Seven resolved (§0, plus four more below). Remaining, grouped by how much they block next steps:
+Resolved so far (§0 plus below). Remaining, grouped by how much they block next steps:
 
 **Resolved since the last revision:**
 - ✅ **Organization**: UN Women Ambassadors. Footer updated to attribute the page to them; a brand/legal
   review against the Ambassadors program's own guidelines (if any exist) is still recommended before the
   repo goes public, since that hasn't been independently checked.
-- ✅ **GitHub repo placement**: personal GitHub account, public repo.
-- ✅ **Newsletter backend**: shipping without one — the section has been fully removed from `index.html`
-  (markup, CSS, and JS handler) rather than left non-functional.
+- ✅ **GitHub repo placement**: personal GitHub account, public repo — live at github.com/NatoCh9/WEPs,
+  deployed to GitHub Pages at natoch9.github.io/WEPs.
 - ✅ **Resource link verification**: both `weps.org/resources` and `weps.org/companies` confirmed live and
   functional (resource library with 39 pages of filterable content; signatory directory listing 12,878
   companies as of the check).
@@ -202,24 +211,36 @@ Seven resolved (§0, plus four more below). Remaining, grouped by how much they 
 - ✅ **Accessibility**: still no formal WCAG target set, but a best-effort pass has been applied — skip-to-
   content link, `aria-live="polite"` on quiz feedback, `role="progressbar"`/`aria-label` on the quiz
   progress bar.
+- ✅ **Photography**: real, verified free-tier Unsplash photography added — hero, mid-page impact band,
+  final CTA, and the `quiz-ad.html` backdrop. Deliberately *not* added to the signatory "Proof it works"
+  cards, since pairing a stock photo with a specific real company's name would misleadingly imply it
+  depicts that company's actual people.
+- ✅ **Newsletter backend**: now genuinely built — a Cloudflare Worker (`worker/`) validates the email and
+  inserts into a `newsletter_subscribers` table in Neon Postgres, with the DB credential stored only as
+  an encrypted Cloudflare secret (never in a file or the repo). See F13 in §6 and `worker/README.md`.
 
 **Still blocking full launch:**
-1. **GitHub repo creation + push** — needs you to create an empty public repo on github.com and share the
-   name/URL (or confirm installing `gh` CLI instead) before this can actually be deployed.
+1. **Deploy the newsletter Worker** — run `wrangler login`, `wrangler secret put DATABASE_URL`, and
+   `wrangler deploy` per `worker/README.md`, then replace the placeholder
+   `https://weps-newsletter.YOUR-SUBDOMAIN.workers.dev` in `index.html`'s script with the real Worker URL
+   wrangler prints out. Until then the newsletter form will fail silently with a network error message.
 2. **GA4 Measurement ID** — swap the `G-XXXXXXX` placeholder in both files for a real one.
+3. **Rotate the Neon database password** — it was shared in plaintext in chat to get this built; best
+   practice is to reset it from the Neon console once the Worker's secret is set with whatever value you
+   land on, so the version that passed through chat is no longer live.
 
 **Important but not launch-blocking:**
-3. **Real quotes/case studies** — still open from the original plan: pursue permission to use real
+4. **Real quotes/case studies** — still open from the original plan: pursue permission to use real
    signatory quotes, or keep the current "real names, no invented quotes" approach?
-4. **Branding** — "KnowWEPs" is a placeholder name; want something different (possibly reflecting the
+5. **Branding** — "KnowWEPs" is a placeholder name; want something different (possibly reflecting the
    UN Women Ambassadors identity), and is there an existing logo/color preference, or should one be designed?
-5. **Photography** — add real workplace photography (per the 8-site teardown, this is near-universal
-   among the researched sites), or stay with the current typography-led, photo-free design?
+6. **Newsletter spam/bot protection** — no rate limiting or CAPTCHA/Turnstile on the signup endpoint yet;
+   fine for low traffic, worth revisiting if abused (see `worker/README.md`).
 
 **Lower priority — nice to know, not urgent:**
-6. **Paid ad plan/budget** — is `quiz-ad.html` actually going to run as a paid campaign, and if so on
+7. **Paid ad plan/budget** — is `quiz-ad.html` actually going to run as a paid campaign, and if so on
    which platform(s) — affects whether it needs platform-specific sizing/tracking?
-11. **Timeline** — any target launch date driving prioritization of the items above?
+8. **Timeline** — any target launch date driving prioritization of the items above?
 
 ## Appendix: Research Summary
 

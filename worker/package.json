@@ -1,0 +1,16 @@
+{
+  "name": "weps-newsletter-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker: newsletter signup endpoint for the WEPs awareness site",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.112.0"
+  }
+}

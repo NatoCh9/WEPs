@@ -1,0 +1,6 @@
+name = "weps-newsletter"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# DATABASE_URL is set as a secret, not here — see README.md.
+# `wrangler secret put DATABASE_URL`
