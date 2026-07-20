@@ -59,6 +59,7 @@ export default {
       `;
       return json({ ok: true }, 200, headers);
     } catch (err) {
+      console.error('newsletter insert failed:', err.message, err.stack);
       return json({ error: 'Server error' }, 500, headers);
     }
   },
